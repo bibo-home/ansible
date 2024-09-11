@@ -1,0 +1,61 @@
+# - name: Start VM on remote server
+#   hosts: hypervisor_servers
+#   become: yes
+#   tasks:
+#     - name: Ensure VM is started
+#       community.libvirt.libvirt:
+#         name: tekika-11
+#         state: running
+#         uri: qemu+ssh://bibo@192.168.50.50/system
+
+- name: Install Xvfb and x11vnc if not present
+  hosts: tekika_servers
+  become: yes
+  tasks:
+    - name: Install Xvfb and x11vnc
+      apt:
+        name:
+          - xvfb
+          - x11vnc
+        state: present
+
+- name: Run daily quest with selenium and Xvfb
+  hosts: tekika_servers
+  become: no
+  tasks:
+    - name: Start Xvfb and x11vnc
+      shell: |
+        Xvfb :0 -screen 0 1920x1080x24 &
+        sleep 5
+        x11vnc -display :0 -nopw -forever -shared &
+        export DISPLAY=:0
+        cd {{ ansible_env.HOME }}/Desktop/tekika && git stash save && git checkout daily && python3 autoCoin.py
+      environment:
+        DISPLAY: :0
+
+    - name: Fetch selenium log
+      fetch:
+        src: "{{ ansible_env.HOME }}/Desktop/tekika/selenium.log"
+        dest: ./selenium.log
+        flat: yes
+
+    - name: Display selenium log
+      local_action: command cat ./selenium.log
+      delegate_to: localhost
+
+# - name: Shut down all VMs after completing Selenium script
+#   hosts: hypervisor_servers
+#   become: yes
+#   tasks:
+#     - name: Define list of VMs to shut down
+#       set_fact:
+#         vm_list:
+#           - ukvm2004
+#           # Add more VM names as needed
+
+#     - name: Ensure all VMs are shut down
+#       community.libvirt.libvirt:
+#         name: "{{ item }}"
+#         state: shutoff
+#         uri: qemu+ssh://bibo@192.168.50.50/system
+#       loop: "{{ vm_list }}"

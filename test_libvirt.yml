@@ -1,0 +1,8 @@
+- name: Test libvirt module
+  hosts: localhost
+  tasks:
+    - name: Ensure VM is started
+      community.libvirt.libvirt:
+        name: test-vm
+        state: running
+        uri: qemu:///system
