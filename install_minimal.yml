@@ -1,0 +1,81 @@
+- name: Install git on Ubuntu
+  hosts: tekika_servers
+  become: yes
+  tasks:
+    - name: Install required packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - apt-transport-https
+        - wget
+        - curl
+        - ca-certificates
+        - software-properties-common
+        
+    - name: Install git
+      apt:
+        name: git
+        state: present
+
+- name: Install Google Chrome on Ubuntu
+  hosts: tekika_servers       
+  become: yes             # Sudo privileges for package installation
+  tasks:
+    - name: Add Google Chrome repository
+      apt_repository:
+        repo: deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
+        state: present
+
+    - name: Install Google Chrome
+      apt:
+        name: google-chrome-stable
+        state: present
+
+- name: Install neovim on Ubuntu
+  hosts: tekika_servers
+  become: yes
+  tasks:
+    - name: Install required packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - software-properties-common
+
+    - name: Add neovim repository
+      apt_repository:
+        repo: ppa:neovim-ppa/stable
+        state: present
+
+    - name: Install neovim
+      apt:
+        name: neovim
+        state: present
+  
+- name: Install btop on Ubuntu
+  hosts: tekika_servers
+  become: yes
+  tasks:
+    - name: Install btop
+      command: snap install btop
+
+- name: Install autojump on Ubuntu
+  hosts: tekika_servers
+  become: yes
+  tasks:
+    - name: Install autojump
+      apt:
+        name: autojump
+        state: present
+      
+- name: Add script autojump to ~/.bashrc
+  hosts: tekika_servers
+  become: yes
+  tasks:
+    - name: Add script autojump to ~/.bashrc
+      lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        line: '[[ -s /usr/share/autojump/autojump.bash ]] && source /usr/share/autojump/autojump.bash'
+        state: present
+        insertafter: EOF
