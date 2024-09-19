@@ -1,0 +1,16 @@
+- name: Run daily quest with selenium and Xvfb
+  hosts: tekika_servers
+  become: no
+  tasks:
+    - name: Start Xvfb and x11vnc
+      shell: |
+        Xvfb :0 -screen 0 1920x1080x24 &
+        sleep 5
+        x11vnc -display :0 -nopw -forever -shared &
+        cd {{ ansible_env.HOME }}/Desktop/tekika
+        git stash save 
+        git checkout relic 
+        git pull
+        python3 autoCoin.py
+      environment:
+        DISPLAY: :0
